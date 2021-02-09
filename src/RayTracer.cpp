@@ -75,6 +75,7 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 {
 	isect i;
 	glm::dvec3 colorC;
+	glm::dvec3 temp(1,1,1);
 #if VERBOSE
 	std::cerr << "== current depth: " << depth << std::endl;
 #endif
@@ -90,7 +91,7 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		// Instead of just returning the result of shade(), add some
 		// more steps: add in the contributions from reflected and refracted
 		// rays.
-
+		printf("intersect");
 		const Material& m = i.getMaterial();
 		colorC = m.shade(scene.get(), r, i);
 	} else {
@@ -103,7 +104,7 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		//       Check traceUI->cubeMap() to see if cubeMap is loaded
 		//       and enabled.
 
-		colorC = glm::dvec3(0.0, 0.0, 0.0);
+		colorC = glm::dvec3(1.0, 1.0, 1.0);
 	}
 #if VERBOSE
 	std::cerr << "== depth: " << depth+1 << " done, returning: " << colorC << std::endl;
@@ -216,8 +217,25 @@ void RayTracer::traceImage(int w, int h)
 {
 	// Always call traceSetup before rendering anything.
 	traceSetup(w,h);
+    glm::dvec3 q(0,0,0);
+	glm::dvec3 cameraOrigin(0,0,0);
+	glm::dvec3 dvec(0,0,0);
+	glm::dvec3 norm(0,0,0);
+	cameraOrigin = scene->getCamera().getEye();
+	for (int i = 0 ;i<w ; i++) {
+		for (int j = 0; j<h; j++) {
+			q = getPixel(i,j);
+			dvec = q - cameraOrigin;
+			norm = glm::normalize(dvec);
+			ray r(cameraOrigin, norm, glm::dvec3(0,0,0),ray::VISIBILITY);
+			double t = 1;//(cameraOrigin-q)/norm;
+		 glm::dvec3 newColor =traceRay(r, glm::dvec3(10,10,10), traceUI->getDepth(), t);
+		 setPixel(i,j,newColor);
+		}
+	}
 
-	// YOUR CODE HERE
+	
+		// YOUR CODE HERE
 	// FIXME: Start one or more threads for ray tracing
 	//
 	// TIPS: Ideally, the traceImage should be executed asynchronously,

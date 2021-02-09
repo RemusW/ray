@@ -96,8 +96,12 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
 	// YOUR CODE HERE
 	//
 	// FIXME: Add ray-trimesh intersection
+	
+	// Check we are hitting the same plane as the triangle
+	// check if we are hitting the triangle in that plane
+	printf("eee");
 
-	return false;
+	return true;
 }
 
 // Once all the verts and faces are loaded, per vertex normals can be
