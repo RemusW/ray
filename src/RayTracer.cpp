@@ -96,7 +96,6 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		// more steps: add in the contributions from reflected and refracted
 		// rays.
 		
-		printf("intersect");
 		const Material& m = i.getMaterial();
 		glm::dvec3 plNorm = i.getN();
 		glm::dvec3 pointQ = (r.getPosition()) + (r.getDirection() *i.getT());
@@ -104,7 +103,7 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		colorC = m.shade(scene.get(), r, i);
         reflectVector = (plNorm) + (r.getDirection()*-1.0);
 	    ray refR(pointQ,reflectVector,glm::dvec3(1,1,1),ray::VISIBILITY);
-        colorC = colorC + (m.kr(i) * traceRay(refR,glm::dvec3(2,2,2),depth-1,t));
+        //colorC = colorC + (m.kr(i) * traceRay(refR,glm::dvec3(2,2,2),depth-1,t));
 	}
 	else {
 		// No intersection.  This ray travels to infinity, so we color
@@ -252,7 +251,7 @@ void RayTracer::traceImage(int w, int h)
 			norm = glm::normalize(dvec);
 			ray r(cameraOrigin, norm, atten, ray::VISIBILITY);
 		 glm::dvec3 newColor = traceRay(r, glm::dvec3(10,10,10), traceUI->getDepth(), t);
-		 setPixel(i,j, glm::dvec3(1,2,3));
+		 setPixel(i,j, newColor);
 		}
 	}
 }
