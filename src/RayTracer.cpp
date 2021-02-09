@@ -75,12 +75,16 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 {
 	isect i;
 	glm::dvec3 colorC;
+	glm::dvec3 reflectVector;
 	glm::dvec3 temp(1,1,1);
+    double n_i;
+	double n_t;
+	
 #if VERBOSE
 	std::cerr << "== current depth: " << depth << std::endl;
 #endif
 
-	if(scene->intersect(r, i)) {
+	if(depth >= 0 && scene->intersect(r, i)) {
 		// YOUR CODE HERE
 
 		// An intersection occurred!  We've got work to do.  For now,
@@ -91,10 +95,18 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		// Instead of just returning the result of shade(), add some
 		// more steps: add in the contributions from reflected and refracted
 		// rays.
+		
 		printf("intersect");
 		const Material& m = i.getMaterial();
+		glm::dvec3 plNorm = i.getN();
+		glm::dvec3 pointQ = (r.getPosition()) + (r.getDirection() *i.getT());
+
 		colorC = m.shade(scene.get(), r, i);
-	} else {
+        reflectVector = (plNorm) + (r.getDirection()*-1.0);
+	    ray refR(pointQ,reflectVector,glm::dvec3(1,1,1),ray::VISIBILITY);
+        colorC = colorC + (m.kr(i) * traceRay(refR,glm::dvec3(2,2,2),depth-1,t));
+	}
+	else {
 		// No intersection.  This ray travels to infinity, so we color
 		// it according to the background color, which in this (simple) case
 		// is just black.
@@ -217,25 +229,8 @@ void RayTracer::traceImage(int w, int h)
 {
 	// Always call traceSetup before rendering anything.
 	traceSetup(w,h);
-    glm::dvec3 q(0,0,0);
-	glm::dvec3 cameraOrigin(0,0,0);
-	glm::dvec3 dvec(0,0,0);
-	glm::dvec3 norm(0,0,0);
-	cameraOrigin = scene->getCamera().getEye();
-	for (int i = 0 ;i<w ; i++) {
-		for (int j = 0; j<h; j++) {
-			q = getPixel(i,j);
-			dvec = q - cameraOrigin;
-			norm = glm::normalize(dvec);
-			ray r(cameraOrigin, norm, glm::dvec3(0,0,0),ray::VISIBILITY);
-			double t = 1;//(cameraOrigin-q)/norm;
-		 glm::dvec3 newColor =traceRay(r, glm::dvec3(10,10,10), traceUI->getDepth(), t);
-		 setPixel(i,j,newColor);
-		}
-	}
-
 	
-		// YOUR CODE HERE
+	// YOUR CODE HERE
 	// FIXME: Start one or more threads for ray tracing
 	//
 	// TIPS: Ideally, the traceImage should be executed asynchronously,
@@ -243,6 +238,23 @@ void RayTracer::traceImage(int w, int h)
 	//
 	//       An asynchronous traceImage lets the GUI update your results
 	//       while rendering.
+    glm::dvec3 q(0,0,0);
+	glm::dvec3 cameraOrigin(0,0,0);
+	glm::dvec3 dvec(0,0,0);
+	glm::dvec3 norm(0,0,0);
+	glm::dvec3 atten(0,0,0);
+	cameraOrigin = scene->getCamera().getEye();
+	for (int i = 0 ;i<w ; i++) {
+		for (int j = 0; j<h; j++) {
+			double t;
+			q = getPixel(i,j);
+			dvec = q - cameraOrigin;
+			norm = glm::normalize(dvec);
+			ray r(cameraOrigin, norm, atten, ray::VISIBILITY);
+		 glm::dvec3 newColor = traceRay(r, glm::dvec3(10,10,10), traceUI->getDepth(), t);
+		 setPixel(i,j, glm::dvec3(1,2,3));
+		}
+	}
 }
 
 int RayTracer::aaImage()

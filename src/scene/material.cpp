@@ -45,6 +45,7 @@ glm::dvec3 Material::shade(Scene* scene, const ray& r, const isect& i) const
 	// 		.
 	// 		.
 	// }
+	
 	return kd(i);
 }
 
