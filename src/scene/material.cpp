@@ -45,7 +45,14 @@ glm::dvec3 Material::shade(Scene* scene, const ray& r, const isect& i) const
 	// 		.
 	// 		.
 	// }
-	
+	const Material& m = i.getMaterial();
+
+	glm::dvec3 phong(0,0,0);
+	phong += m.ke(i) + m.ka(i) * ka(i);
+	for ( const auto& pLight : scene->getAllLights() ) {
+
+	}
+
 	return kd(i);
 }
 

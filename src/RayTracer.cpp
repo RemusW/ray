@@ -2,6 +2,9 @@
 
 #pragma warning (disable: 4786)
 
+#include "glm/ext.hpp"
+#include "glm/gtx/string_cast.hpp"
+
 #include "RayTracer.h"
 #include "scene/light.h"
 #include "scene/material.h"
@@ -85,8 +88,8 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 #endif
 
 	if(depth >= 0 && scene->intersect(r, i)) {
+		// std::cout<<glm::to_string(x)<<std::endl;
 		// YOUR CODE HERE
-
 		// An intersection occurred!  We've got work to do.  For now,
 		// this code gets the material for the surface that was intersected,
 		// and asks that material to provide a color for the ray.
@@ -101,9 +104,10 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		glm::dvec3 pointQ = (r.getPosition()) + (r.getDirection() *i.getT());
 
 		colorC = m.shade(scene.get(), r, i);
-        reflectVector = (plNorm) + (r.getDirection()*-1.0);
+        reflectVector = glm::reflect(r.getDirection(),plNorm);
+		reflectVector = glm::normalize(reflectVector);
 	    ray refR(pointQ,reflectVector,glm::dvec3(1,1,1),ray::VISIBILITY);
-        //colorC = colorC + (m.kr(i) * traceRay(refR,glm::dvec3(2,2,2),depth-1,t));
+        colorC = colorC + (m.kr(i) * traceRay(refR,glm::dvec3(1.0,1.0,1.0),depth-1,t));
 	}
 	else {
 		// No intersection.  This ray travels to infinity, so we color
@@ -114,8 +118,7 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		// TIPS: CubeMap object can be fetched from traceUI->getCubeMap();
 		//       Check traceUI->cubeMap() to see if cubeMap is loaded
 		//       and enabled.
-
-		colorC = glm::dvec3(1.0, 1.0, 1.0);
+		colorC = glm::dvec3(0, 0, 0);
 	}
 #if VERBOSE
 	std::cerr << "== depth: " << depth+1 << " done, returning: " << colorC << std::endl;
@@ -237,21 +240,9 @@ void RayTracer::traceImage(int w, int h)
 	//
 	//       An asynchronous traceImage lets the GUI update your results
 	//       while rendering.
-    glm::dvec3 q(0,0,0);
-	glm::dvec3 cameraOrigin(0,0,0);
-	glm::dvec3 dvec(0,0,0);
-	glm::dvec3 norm(0,0,0);
-	glm::dvec3 atten(0,0,0);
-	cameraOrigin = scene->getCamera().getEye();
 	for (int i = 0 ;i<w ; i++) {
 		for (int j = 0; j<h; j++) {
-			double t;
-			q = getPixel(i,j);
-			dvec = q - cameraOrigin;
-			norm = glm::normalize(dvec);
-			ray r(cameraOrigin, norm, atten, ray::VISIBILITY);
-		 glm::dvec3 newColor = traceRay(r, glm::dvec3(10,10,10), traceUI->getDepth(), t);
-		 setPixel(i,j, newColor);
+			setPixel(i,j, tracePixel(i,j));
 		}
 	}
 }
@@ -287,13 +278,14 @@ void RayTracer::waitRender()
 	// TIPS: Join all worker threads here.
 }
 
-
+// Gets Color of Pixel
 glm::dvec3 RayTracer::getPixel(int i, int j)
 {
 	unsigned char *pixel = buffer.data() + ( i + j * buffer_width ) * 3;
 	return glm::dvec3((double)pixel[0]/255.0, (double)pixel[1]/255.0, (double)pixel[2]/255.0);
 }
 
+//Sets Color of Pixel
 void RayTracer::setPixel(int i, int j, glm::dvec3 color)
 {
 	unsigned char *pixel = buffer.data() + ( i + j * buffer_width ) * 3;
