@@ -48,12 +48,16 @@ glm::dvec3 Material::shade(Scene* scene, const ray& r, const isect& i) const
 	const Material& m = i.getMaterial();
 
 	glm::dvec3 phong(0,0,0);
-	phong += m.ke(i) + m.ka(i) * ka(i);
+	glm::dvec3 pointQ = (r.getPosition()) + glm::normalize(r.getDirection()) *i.getT();
+	phong += m.ke(i) + m.ka(i) * scene->ambient();
+	int a=0;
 	for ( const auto& pLight : scene->getAllLights() ) {
-
+		double atten = pLight->distanceAttenuation(pointQ) * glm::length(pLight->shadowAttenuation(r, pointQ));
+		phong += atten*(kd(i) + ks(i));
+	
+		cout << a++ << " " << pLight->getColor() << " " << phong << " "  << atten << " " << pLight->distanceAttenuation(pointQ) << endl;
 	}
-
-	return kd(i);
+	return phong;
 }
 
 TextureMap::TextureMap(string filename)

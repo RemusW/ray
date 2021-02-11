@@ -1,0 +1,12 @@
+Group Members: Remus Wong,
+
+Work Accomplished:
+Remus and Marlowe
+    At the moment, we have the basic shading for surfaces implemented. We've taken a good look at implementing the trimesh code
+    but decided to work on the shading first.
+
+    Beginning of phong shading model is setup. At the moment I have code for the distance attenuation and shadow attenuation
+    but my result seems to blow out my image.
+
+Plans:
+    We plan a set amount of hours each day 

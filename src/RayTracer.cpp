@@ -78,8 +78,11 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 {
 	isect i;
 	glm::dvec3 colorC;
+	glm::dvec3 colorO; //Color of initial object 
+	glm::dvec3 colorRe; //Reflect color
+	glm::dvec3 colorRf; //Refract Color
 	glm::dvec3 reflectVector;
-	glm::dvec3 temp(1,1,1);
+	glm::dvec3 refractVector;
     double n_i;
 	double n_t;
 	
@@ -102,12 +105,37 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		const Material& m = i.getMaterial();
 		glm::dvec3 plNorm = i.getN();
 		glm::dvec3 pointQ = (r.getPosition()) + (r.getDirection() *i.getT());
-
-		colorC = m.shade(scene.get(), r, i);
-        reflectVector = glm::reflect(r.getDirection(),plNorm);
-		reflectVector = glm::normalize(reflectVector);
+		//cout << i.getT() << endl;
+		//Phong Model Color
+		colorO = m.shade(scene.get(), r, i);
+        //Reflected Color
+		reflectVector = glm::reflect(r.getDirection(),plNorm);
 	    ray refR(pointQ,reflectVector,glm::dvec3(1,1,1),ray::VISIBILITY);
-        colorC = colorC + (m.kr(i) * traceRay(refR,glm::dvec3(1.0,1.0,1.0),depth-1,t));
+        colorRe = colorRe + (m.kr(i) * traceRay(refR,glm::dvec3(1.0,1.0,1.0),depth-1,t));
+		//Refracted/Transmitted Color
+		double dotP = glm::dot(r.getDirection(),plNorm);
+		if (dotP > 0)
+		{
+			n_i = m.index(i);
+			n_t = 1;
+		}
+		else 
+		{
+			n_i = 1; 
+			n_t = m.index(i);
+		}
+		// - check trans > 0 && notTIR (n_i, n_t, N, -d)
+		// n_i / n_t
+		//check for total internal reflection 
+		double TIR = 1.0 - (n_i/n_t)*(n_i/n_t) * (1.0 - glm::dot(plNorm,r.getDirection())
+		*glm::dot(plNorm,r.getDirection()));
+		if (TIR>=0)
+		{
+			refractVector = glm::refract(r.getDirection(),plNorm,n_i/n_t);
+			ray rafR(pointQ,refractVector,glm::dvec3(1,1,1),ray::VISIBILITY);
+			colorRf = colorRf + (m.kt(i) * traceRay(rafR,glm::dvec3(1.0,1.0,1.0),depth-1,t));
+		} 
+		colorC = colorO + colorRe + colorRf;
 	}
 	else {
 		// No intersection.  This ray travels to infinity, so we color
@@ -118,7 +146,8 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		// TIPS: CubeMap object can be fetched from traceUI->getCubeMap();
 		//       Check traceUI->cubeMap() to see if cubeMap is loaded
 		//       and enabled.
-		colorC = glm::dvec3(0, 0, 0);
+
+		colorC = glm::dvec3(1.0, 1.0, 1.0);
 	}
 #if VERBOSE
 	std::cerr << "== depth: " << depth+1 << " done, returning: " << colorC << std::endl;
