@@ -111,7 +111,7 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
         //Reflected Color
 		reflectVector = glm::reflect(r.getDirection(),plNorm);
 	    ray refR(pointQ,reflectVector,glm::dvec3(1,1,1),ray::VISIBILITY);
-        colorRe = colorRe + (m.kr(i) * traceRay(refR,glm::dvec3(1.0,1.0,1.0),depth-1,t));
+        colorRe = m.shade(scene.get(),refR,i) + (m.kr(i) * traceRay(refR,glm::dvec3(1.0,1.0,1.0),depth-1,t));
 		//Refracted/Transmitted Color
 		double dotP = glm::dot(r.getDirection(),plNorm);
 		if (dotP > 0)
@@ -133,7 +133,7 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		{
 			refractVector = glm::refract(r.getDirection(),plNorm,n_i/n_t);
 			ray rafR(pointQ,refractVector,glm::dvec3(1,1,1),ray::VISIBILITY);
-			colorRf = colorRf + (m.kt(i) * traceRay(rafR,glm::dvec3(1.0,1.0,1.0),depth-1,t));
+			colorRf = m.shade(scene.get(),rafR,i) + (m.kt(i) * traceRay(rafR,glm::dvec3(1.0,1.0,1.0),depth-1,t));
 		} 
 		colorC = colorO;
 	}
