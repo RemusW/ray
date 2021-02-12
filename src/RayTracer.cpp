@@ -135,7 +135,7 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 			ray rafR(pointQ,refractVector,glm::dvec3(1,1,1),ray::VISIBILITY);
 			colorRf = colorRf + (m.kt(i) * traceRay(rafR,glm::dvec3(1.0,1.0,1.0),depth-1,t));
 		} 
-		colorC = colorO + colorRe + colorRf;
+		colorC = colorO;
 	}
 	else {
 		// No intersection.  This ray travels to infinity, so we color
@@ -146,7 +146,7 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		// TIPS: CubeMap object can be fetched from traceUI->getCubeMap();
 		//       Check traceUI->cubeMap() to see if cubeMap is loaded
 		//       and enabled.
-
+        bool enabled = traceUI->cubeMap();
 		colorC = glm::dvec3(1.0, 1.0, 1.0);
 	}
 #if VERBOSE
