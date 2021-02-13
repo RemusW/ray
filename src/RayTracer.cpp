@@ -104,16 +104,17 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		
 		const Material& m = i.getMaterial();
 		glm::dvec3 plNorm = i.getN();
-		glm::dvec3 pointQ = (r.getPosition()) + (r.getDirection() *i.getT());
-		//cout << i.getT() << endl;
+		glm::dvec3 rDir = glm::normalize(r.getDirection());
+		glm::dvec3 pointQ = (r.getPosition() + rDir *i.getT());
 		//Phong Model Color
 		colorO = m.shade(scene.get(), r, i);
         //Reflected Color
-		reflectVector = glm::reflect(r.getDirection(),plNorm);
-	    ray refR(pointQ,reflectVector,glm::dvec3(1,1,1),ray::VISIBILITY);
-        colorRe = m.shade(scene.get(),refR,i) + (m.kr(i) * traceRay(refR,glm::dvec3(1.0,1.0,1.0),depth-1,t));
+		reflectVector = glm::reflect(rDir,plNorm);
+		reflectVector = glm::normalize(reflectVector);
+	    ray refR(pointQ,reflectVector,glm::dvec3(1,1,1),ray::REFLECTION); // change ray type
+        colorRe = (m.kr(i) * traceRay(refR,thresh,depth-1,t));
 		//Refracted/Transmitted Color
-		double dotP = glm::dot(r.getDirection(),plNorm);
+		double dotP = glm::dot(rDir,plNorm);
 		if (dotP > 0)
 		{
 			n_i = m.index(i);
@@ -127,15 +128,17 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		// - check trans > 0 && notTIR (n_i, n_t, N, -d)
 		// n_i / n_t
 		//check for total internal reflection 
-		double TIR = 1.0 - (n_i/n_t)*(n_i/n_t) * (1.0 - glm::dot(plNorm,r.getDirection())
-		*glm::dot(plNorm,r.getDirection()));
+		double TIR = 1.0 - (n_i/n_t)*(n_i/n_t) * (1.0 - glm::dot(plNorm,rDir)
+		*glm::dot(plNorm,rDir));
 		if (TIR>=0)
 		{
-			refractVector = glm::refract(r.getDirection(),plNorm,n_i/n_t);
-			ray rafR(pointQ,refractVector,glm::dvec3(1,1,1),ray::VISIBILITY);
-			colorRf = m.shade(scene.get(),rafR,i) + (m.kt(i) * traceRay(rafR,glm::dvec3(1.0,1.0,1.0),depth-1,t));
-		} 
-		colorC = colorO;
+			//cout << "refract" << endl;
+			refractVector = glm::refract(rDir,plNorm,n_i/n_t);
+			ray rafR(pointQ,glm::normalize(refractVector),glm::dvec3(1,1,1),ray::REFRACTION); //change ray type
+			colorRf =  (m.kt(i) * traceRay(rafR,thresh,depth-1,t));
+		}
+		//cout << m.kt(i) << " "  << m.kr(i) << " " << colorO << " " << colorRe << " " << colorRf << endl;
+		colorC = colorO + colorRe + colorRf;
 	}
 	else {
 		// No intersection.  This ray travels to infinity, so we color
@@ -147,7 +150,8 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		//       Check traceUI->cubeMap() to see if cubeMap is loaded
 		//       and enabled.
         bool enabled = traceUI->cubeMap();
-		colorC = glm::dvec3(1.0, 1.0, 1.0);
+		CubeMap * tC = traceUI->getCubeMap();
+		colorC = glm::dvec3(0.0, 0.0, 0.0);
 	}
 #if VERBOSE
 	std::cerr << "== depth: " << depth+1 << " done, returning: " << colorC << std::endl;
