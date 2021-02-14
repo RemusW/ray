@@ -115,29 +115,30 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
         colorRe = (m.kr(i) * traceRay(refR,thresh,depth-1,t));
 		//Refracted/Transmitted Color
 		double dotP = glm::dot(rDir,plNorm);
-		if (dotP > 0)
+		if (dotP >= 0)
 		{
-			n_i = m.index(i);
-			n_t = 1;
+			// Entering object
+			n_i = 1;
+			n_t = m.index(i);
 		}
 		else 
 		{
-			n_i = 1; 
-			n_t = m.index(i);
+			// Exiting object
+			n_i = m.index(i);
+			n_t = 1;
 		}
 		// - check trans > 0 && notTIR (n_i, n_t, N, -d)
 		// n_i / n_t
 		//check for total internal reflection 
-		double TIR = 1.0 - (n_i/n_t)*(n_i/n_t) * (1.0 - glm::dot(plNorm,rDir)
-		*glm::dot(plNorm,rDir));
-		if (TIR>=0)
+		double TIR = 1.0 - ((n_i/n_t)*(n_i/n_t)) * (1.0 - glm::dot(plNorm,rDir) * glm::dot(plNorm,rDir));
+		if (TIR>=0 && glm::length(m.kt(i)) > 0)
 		{
 			//cout << "refract" << endl;
 			refractVector = glm::refract(rDir,plNorm,n_i/n_t);
-			ray rafR(pointQ,glm::normalize(refractVector),glm::dvec3(1,1,1),ray::REFRACTION); //change ray type
+			ray rafR(pointQ,glm::normalize(refractVector),m.kt(i),ray::REFRACTION); //change ray type
 			colorRf =  (m.kt(i) * traceRay(rafR,thresh,depth-1,t));
+		cout << m.kr(i) << " "  << m.kt(i) << " " << colorRf << endl;
 		}
-		//cout << m.kt(i) << " "  << m.kr(i) << " " << colorO << " " << colorRe << " " << colorRf << endl;
 		colorC = colorO + colorRe + colorRf;
 	}
 	else {
@@ -152,6 +153,8 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
         bool enabled = traceUI->cubeMap();
 		CubeMap * tC = traceUI->getCubeMap();
 		colorC = glm::dvec3(0.0, 0.0, 0.0);
+		if (enabled)
+		   colorC = tC->getColor(r);
 	}
 #if VERBOSE
 	std::cerr << "== depth: " << depth+1 << " done, returning: " << colorC << std::endl;

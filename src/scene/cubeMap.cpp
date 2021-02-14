@@ -9,7 +9,7 @@ glm::dvec3 CubeMap::getColor(ray r) const
 	// YOUR CODE HERE
 	// FIXME: Implement Cube Map here
 	// do phong model?
-	return glm::dvec3();
+	return r.at(1.0);
 }
 
 CubeMap::CubeMap()

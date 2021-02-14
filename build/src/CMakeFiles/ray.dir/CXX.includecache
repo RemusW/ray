@@ -102,12 +102,6 @@ iostream
 string
 -
 
-/home/remusw/Documents/Graphics/Proj1/ray/src/fileio/images.h
-vector
--
-stdint.h
--
-
 /home/remusw/Documents/Graphics/Proj1/ray/src/parser/Parser.h
 string
 -
@@ -191,22 +185,6 @@ scene.h
 /home/remusw/Documents/Graphics/Proj1/ray/src/ui/TraceUI.h
 FL/gl.h
 -
-
-/home/remusw/Documents/Graphics/Proj1/ray/src/scene/material.cpp
-material.h
-/home/remusw/Documents/Graphics/Proj1/ray/src/scene/material.h
-../ui/TraceUI.h
-/home/remusw/Documents/Graphics/Proj1/ray/src/ui/TraceUI.h
-light.h
-/home/remusw/Documents/Graphics/Proj1/ray/src/scene/light.h
-ray.h
-/home/remusw/Documents/Graphics/Proj1/ray/src/scene/ray.h
-glm/gtx/io.hpp
--
-iostream
--
-../fileio/images.h
-/home/remusw/Documents/Graphics/Proj1/ray/src/fileio/images.h
 
 /home/remusw/Documents/Graphics/Proj1/ray/src/scene/material.h
 glm/vec2.hpp

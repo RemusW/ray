@@ -87,16 +87,11 @@ glm::dvec3 PointLight::shadowAttenuation(const ray& r, const glm::dvec3& p) cons
 	double dist2light = glm::length(position - p);
 	double dist2Q = glm::length(getDirection(p) * hitT.getT());
 	if (dist2light > dist2Q)
+		// our surface hit is before the light, apply attenuation
 		shadAtten = glm::dvec3(0,0,0);
 	else
+		// our surface is behind the light, no need to apply attenuation
 		shadAtten = glm::dvec3(1,1,1);
-	
-	// P = light position, dvec = d, N=
-	//double t2light = -1 * (shadRay)
-	//cout << hitT.getN() << " " << 
-	// need to find the t to the light
-	// I know the position where I am trying to calculate, p
-	// the first thing i hit from a p to a likght
 	return shadAtten;
 }
 

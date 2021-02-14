@@ -87,7 +87,7 @@ class TrimeshFace : public MaterialSceneObject {
 	int ids[3];
 	glm::dvec3 normal;
 	double dist;
-
+    
 public:
 	TrimeshFace(Scene *scene, Material *mat, Trimesh *parent, int a, int b,
 	            int c)

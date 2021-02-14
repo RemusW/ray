@@ -63,7 +63,7 @@ glm::dvec3 Material::shade(Scene* scene, const ray& r, const isect& i) const
 		glm::dvec3 V = r.getDirection()*-1.0;
 		glm::dvec3 specular = ks(i) * pow(max(0.0, dot(R, V)), m.shininess(i));
 		phong += atten*(diffuse + specular) * pLight->getColor();
-	
+
 		//cout << a++ << " " << phong << " "  << atten << " " << distatten << " " <<shadatten << endl;
 	}
 	return phong;
