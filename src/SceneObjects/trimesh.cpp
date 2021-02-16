@@ -97,41 +97,59 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
 	//
 	// FIXME: Add ray-trimesh intersection
 	const TrimeshFace *iFace = this;
-	if (glm::dot(iFace->normal,r.getDirection()) == 0)
+	const glm::dvec3 tfNorm = iFace->normal; 
+	if (glm::dot(tfNorm,r.getDirection()) == 0)
 	 return false;
 
 	glm::dvec3 a_coords = iFace->parent->vertices[iFace->ids[0]];
 	glm::dvec3 b_coords = iFace->parent->vertices[iFace->ids[1]];
 	glm::dvec3 c_coords = iFace->parent->vertices[iFace->ids[2]];
 	glm::dvec3 midPoint = (1.0/3.0) * (a_coords + b_coords + c_coords);
-   
+    
+	
 	glm::dvec3 area = (glm::cross(a_coords,b_coords) + glm::cross(b_coords,c_coords)
 	 + glm::cross(c_coords,a_coords));
-	area = glm::normalize(area) * (1.0/2.0);
+    double aArea = (1.0/2.0) * glm::length(area);
 
-	// using Point B , C and Midpoint get a subarea
-	glm::dvec3 aA = (glm::cross(b_coords,c_coords) 
-	+ glm::cross(b_coords,midPoint) + glm::cross(c_coords,midPoint)); 
-	aA = glm::normalize(aA) * (1.0/2.0);
-
-	// using Point A , C and Midpoint get b subarea
-	glm::dvec3 aB = (glm::cross(a_coords,c_coords) 
-	+ glm::cross(a_coords,midPoint) + glm::cross(c_coords,midPoint)); 
-	aB = glm::normalize(aB) * (1.0/2.0);
-
-	// using Point A , B and Midpoint get c subarea 
-	glm::dvec3 aC = (glm::cross(a_coords,b_coords) 
-	+ glm::cross(a_coords,midPoint) + glm::cross(b_coords,midPoint)); 
-	aC = glm::normalize(aC) * (1.0/2.0);
+	double tIntersect = (glm::dot(tfNorm,r.getPosition()+r.getDirection()))
+	/glm::dot(tfNorm,r.getDirection());
+	tIntersect = tIntersect * (-1.0);
+	glm::dvec3 pointQ = r.getPosition() + (tIntersect * r.getDirection());
+     // Do inside outside test to double-verify 
+	 //(b-a) x (q-a) . n >=0 
+	 //(c-b) x (q-b) . n >=0 
+	 //(a-c) x (q-c) . n >=0 
+     bool insideOut = glm::dot(glm::cross(b_coords-a_coords,pointQ-a_coords),tfNorm) >= 0;
+	 insideOut = insideOut && (glm::dot(glm::cross(c_coords-b_coords,pointQ-b_coords),tfNorm) >= 0);
+	 insideOut = insideOut && (glm::dot(glm::cross(a_coords-c_coords,pointQ-c_coords),tfNorm) >= 0);
+	 if (!insideOut)
+      return false;
+	
+	 // using Point B , C and Point Q get a subarea
+	glm::dvec3 aA = glm::cross(b_coords-c_coords,pointQ-b_coords);
+    double xA = glm::length(aA) * (1.0/2.0);
+	// using Point A , C and Point Q get b subarea
+	glm::dvec3 aB = glm::cross(a_coords-c_coords,pointQ-c_coords);
+    double xB = glm::length(aB) * (1.0/2.0);
+	// using Point A , B and Point Q get c subarea 
+	glm::dvec3 aC = glm::cross(b_coords-a_coords,pointQ-a_coords);
+	double xC = glm::length(aC) * (1.0/2.0);
      
-	glm::dvec3 alpha = aA/area;
-	glm::dvec3 beta  = aB/area;
-	glm::dvec3 gamma = aC/area; 
+	double Qalpha = xA/aArea;
+	double Qbeta  = xB/aArea;
+	double Qgamma = xC/aArea; 
 
-	double tIntersect = glm::dot()
+	bool inTriangle = (Qalpha >=0.0 && Qbeta>=0.0 && Qgamma >= 0.0) && (Qalpha+Qbeta+Qgamma == 1.0);\
+	if (!inTriangle)
+	return false;
+	
+    i.setT(tIntersect);
+	i.setN(tfNorm);
+	i.setMaterial(getMaterial());
+    i.setBary(glm::dvec3(Qalpha,Qbeta,Qgamma));
+	i.setUVCoordinates(glm::dvec2(Qalpha,Qbeta));
 	// Check we are hitting the same plane as the triangle
 	// check if we are hitting the triangle in that plane
-	printf("eee");
 
 	return true;
 }

@@ -115,30 +115,41 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
         colorRe = (m.kr(i) * traceRay(refR,thresh,depth-1,t));
 		//Refracted/Transmitted Color
 		double dotP = glm::dot(rDir,plNorm);
-		if (dotP >= 0)
+		if (dotP < 0)
 		{
 			// Entering object
 			n_i = 1;
 			n_t = m.index(i);
 		}
-		else 
+		else
 		{
 			// Exiting object
 			n_i = m.index(i);
 			n_t = 1;
+			plNorm *= -1.0;
 		}
-		// - check trans > 0 && notTIR (n_i, n_t, N, -d)
-		// n_i / n_t
-		//check for total internal reflection 
-		double TIR = 1.0 - ((n_i/n_t)*(n_i/n_t)) * (1.0 - glm::dot(plNorm,rDir) * glm::dot(plNorm,rDir));
+		// check trans > 0 && notTIR (n_i, n_t, N, -d)
+		// check for total internal reflection
+		double eta = n_i/n_t;
+		double TIR = 1 - eta*eta * (1 - dotP*dotP);
 		if (TIR>=0 && glm::length(m.kt(i)) > 0)
 		{
-			//cout << "refract" << endl;
-			refractVector = glm::refract(rDir,plNorm,n_i/n_t);
-			ray rafR(pointQ,glm::normalize(refractVector),m.kt(i),ray::REFRACTION); //change ray type
-			colorRf =  (m.kt(i) * traceRay(rafR,thresh,depth-1,t));
-		cout << m.kr(i) << " "  << m.kt(i) << " " << colorRf << endl;
+			refractVector = glm::refract(rDir,plNorm,eta);
+			ray rafR(pointQ,refractVector,glm::dvec3(1,1,1),ray::REFRACTION); //change ray 
+			glm::dvec3 refractCol = traceRay(rafR,thresh,depth-1,t);
+			colorRf =  m.kt(i) * refractCol;
+			//cout << m.kt(i) << " " << refractCol << " " << colorRf << endl;
 		}
+		// if (TIR < 0)
+		// 	colorRf = glm::dvec3(0,0,0);
+		// else
+		// {
+		// 	refractVector = glm::refract(rDir,plNorm,n_i/n_t);
+		// 	ray rafR(pointQ,refractVector,glm::dvec3(1,1,1),ray::REFRACTION); //change ray 
+		// 	glm::dvec3 refractCol = traceRay(rafR,thresh,depth-1,t);
+		// 	colorRf = m.kt(i) * refractCol;
+		// 	cout << " " << refractVector << " " << refractCol << " " << colorRf << endl;
+		// }
 		colorC = colorO + colorRe + colorRf;
 	}
 	else {
