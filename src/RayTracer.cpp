@@ -118,14 +118,14 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		if (dotP < 0)
 		{
 			// Entering object
-			n_i = 1;
+			n_i = 1.0003;
 			n_t = m.index(i);
 		}
 		else
 		{
 			// Exiting object
 			n_i = m.index(i);
-			n_t = 1;
+			n_t = 1.0003;
 			plNorm *= -1.0;
 		}
 		// check trans > 0 && notTIR (n_i, n_t, N, -d)
@@ -140,16 +140,6 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 			colorRf =  m.kt(i) * refractCol;
 			//cout << m.kt(i) << " " << refractCol << " " << colorRf << endl;
 		}
-		// if (TIR < 0)
-		// 	colorRf = glm::dvec3(0,0,0);
-		// else
-		// {
-		// 	refractVector = glm::refract(rDir,plNorm,n_i/n_t);
-		// 	ray rafR(pointQ,refractVector,glm::dvec3(1,1,1),ray::REFRACTION); //change ray 
-		// 	glm::dvec3 refractCol = traceRay(rafR,thresh,depth-1,t);
-		// 	colorRf = m.kt(i) * refractCol;
-		// 	cout << " " << refractVector << " " << refractCol << " " << colorRf << endl;
-		// }
 		colorC = colorO + colorRe + colorRf;
 	}
 	else {
@@ -162,10 +152,12 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		//       Check traceUI->cubeMap() to see if cubeMap is loaded
 		//       and enabled.
         bool enabled = traceUI->cubeMap();
-		CubeMap * tC = traceUI->getCubeMap();
-		colorC = glm::dvec3(0.0, 0.0, 0.0);
-		if (enabled)
-		   colorC = tC->getColor(r);
+		if (enabled){
+			CubeMap * tC = traceUI->getCubeMap();
+			colorC = tC->getColor(r);
+		}
+		else
+			colorC = glm::dvec3(0.0, 0.0, 0.0);
 	}
 #if VERBOSE
 	std::cerr << "== depth: " << depth+1 << " done, returning: " << colorC << std::endl;
