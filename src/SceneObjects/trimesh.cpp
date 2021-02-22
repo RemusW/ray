@@ -96,22 +96,24 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
 	// YOUR CODE HERE
 	//
 	// FIXME: Add ray-trimesh intersection
-	const TrimeshFace *iFace = this;
+	// Check we are hitting the same plane as the triangle
+	// check if we are hitting the triangle in that plane
 	const glm::dvec3 tfNorm = normal; 
-	if (abs(glm::dot(tfNorm,r.getDirection()))  <= 0) // check abs < kEpsilon instead
+	if (glm::dot(tfNorm,r.getDirection())  == 0.0) 
 	 return false;
 
 	glm::dvec3 a_coords = parent->vertices[ids[0]];
 	glm::dvec3 b_coords = parent->vertices[ids[1]];
 	glm::dvec3 c_coords = parent->vertices[ids[2]];
-	glm::dvec3 midPoint =  (a_coords + b_coords + c_coords) * (1.0/3.0);
+	//glm::dvec3 midPoint =  (a_coords + b_coords + c_coords) * (1.0/3.0);
     
-	//Point a b c
-	glm::dvec3 area = glm::cross(a_coords-b_coords,c_coords-a_coords);
+	//area from Point a b c
+	glm::dvec3 area = glm::cross(b_coords-a_coords,c_coords-a_coords);
     double aArea = (1.0/2.0) * glm::length(area); 
-
-	double tIntersect = (glm::dot(tfNorm,r.getPosition())+ glm::dot(tfNorm,midPoint))
+    //calculate t value
+	double tIntersect = (glm::dot(tfNorm,r.getPosition()) + glm::dot(tfNorm,a_coords))
 	/glm::dot(tfNorm,r.getDirection());
+	tIntersect *= (-1.0);//
 	if (tIntersect<0) 
 	return false;
 	glm::dvec3 pointQ = r.getPosition() + (tIntersect * r.getDirection());
@@ -121,8 +123,8 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
      bool insideOut = glm::dot(glm::cross(b_coords-a_coords,pointQ-a_coords),tfNorm) >= 0;
 	 insideOut = insideOut && (glm::dot(glm::cross(c_coords-b_coords,pointQ-b_coords),tfNorm) >= 0);
 	 insideOut = insideOut && (glm::dot(glm::cross(a_coords-c_coords,pointQ-c_coords),tfNorm) >= 0);
-	 //if (!insideOut)
-      //return false;
+	 if (!insideOut)
+      return false;
 	
 	 // using Point B , C and Point Q get a subarea
 	glm::dvec3 aA = glm::cross(c_coords-b_coords,pointQ-b_coords);
@@ -134,35 +136,41 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
 	glm::dvec3 aC = glm::cross(b_coords-a_coords,pointQ-a_coords);
 	double xC = glm::length(aC) * (1.0/2.0);
      
-	double Qalpha = xA/aArea;
-	double Qbeta  = xB/aArea;
-	double Qgamma = xC/aArea; 
+	 //greek values
+	double qAlpha = xA/aArea;
+	double qBeta  = xB/aArea;
+	double qGamma = xC/aArea; 
 
-	bool inTriangle = (Qalpha >=0.0 && Qbeta>=0.0 && Qgamma >= 0.0) && (Qalpha+Qbeta+Qgamma == 1.0);
-	//if (!inTriangle)
-  	//return false;
+	bool inTriangle = (qAlpha >=0.0 && qBeta>=0.0 && qGamma >= 0.0) && 
+	(qAlpha+qBeta+qGamma <= 1.0 + RAY_EPSILON && qAlpha+qBeta+qGamma >= 1-RAY_EPSILON);
+	if (!inTriangle)
+  	return false;
     
-
     i.setT(tIntersect);
 	i.setN(tfNorm);
 	i.setMaterial(getMaterial());
-	i.setUVCoordinates(glm::dvec2(Qalpha,Qbeta));
-	i.setBary(Qalpha,Qbeta,Qgamma);
-	// Check we are hitting the same plane as the triangle
-	// check if we are hitting the triangle in that plane
+	i.setUVCoordinates(glm::dvec2(qAlpha,qBeta));
+	i.setObject(this);
+	i.setBary(qAlpha,qBeta,qGamma);
     if (parent->vertNorms)
 	{
      glm::dvec3 a_norm = parent->normals[ids[0]];
 	 glm::dvec3 b_norm = parent->normals[ids[1]];
 	 glm::dvec3 c_norm = parent->normals[ids[2]];
-
-	 glm::dvec3 kd_Q = (Qalpha * a_norm) + (Qbeta * b_norm) + (Qgamma * c_norm);
+	 glm::dvec3 kd_Q = (qAlpha * a_norm) + (qBeta * b_norm) + (qGamma * c_norm);
+     Material aMat  = *(parent->materials[0]);
+	 Material bMat  = *(parent->materials[1]);
+	 Material cMat  = *(parent->materials[2]);
+	 Material mixedMat = (qAlpha * aMat);
+	 mixedMat += (qBeta * bMat);
+	 mixedMat += (qGamma * cMat);
 	 kd_Q = glm::normalize(kd_Q);
 	 //use interpolated normal instead 
 	 i.setN(kd_Q);
-	 parent->normals[ids[0]] = kd_Q;
-	 parent->normals[ids[1]] = kd_Q;
-	 parent->normals[ids[2]] = kd_Q;
+	 i.setMaterial(mixedMat);
+	 parent->normals[ids[0]] = kd_Q; // useless 
+	 parent->normals[ids[1]] = kd_Q; //useless
+	 parent->normals[ids[2]] = kd_Q; //  useless
     }
 	return true;
 }

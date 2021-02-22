@@ -94,7 +94,7 @@ glm::dvec3 TextureMap::getMappedValue(const glm::dvec2& coord) const
 	// and use these to perform bilinear interpolation
 	// of the values.
 	glm::dvec3 pix = getPixelAt(coord[0]*width, coord[1]*height);
-	cout << coord[0] << " " << coord[1] << " " << pix << endl;
+	//cout << coord[0] << " " << coord[1] << " " << pix << endl;
 	return pix;
 }
 

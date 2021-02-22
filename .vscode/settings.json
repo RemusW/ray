@@ -33,6 +33,7 @@
         "typeinfo": "cpp",
         "valarray": "cpp",
         "vector": "cpp",
-        "sstream": "cpp"
+        "sstream": "cpp",
+        "iostream": "cpp"
     }
 }
