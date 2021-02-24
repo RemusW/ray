@@ -21,6 +21,8 @@ cmath
 -
 ../ui/TraceUI.h
 /home/remusw/Documents/Graphics/Proj1/ray/src/ui/TraceUI.h
+iostream
+-
 
 /home/remusw/Documents/Graphics/Proj1/ray/src/SceneObjects/trimesh.h
 list
