@@ -106,13 +106,16 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		glm::dvec3 plNorm = i.getN();
 		glm::dvec3 rDir = glm::normalize(r.getDirection());
 		glm::dvec3 pointQ = (r.getPosition() + rDir *i.getT());
+		pointQ += plNorm*RAY_EPSILON;
 		//Phong Model Color
 		colorO = m.shade(scene.get(), r, i);
+
         //Reflected Color
 		reflectVector = glm::reflect(rDir,plNorm);
 		reflectVector = glm::normalize(reflectVector);
 	    ray refR(pointQ,reflectVector,glm::dvec3(1,1,1),ray::REFLECTION); // change ray type
         colorRe = (m.kr(i) * traceRay(refR,thresh,depth-1,t));
+		
 		//Refracted/Transmitted Color
 		double dotP = glm::dot(rDir,plNorm);
 		if (dotP < 0)

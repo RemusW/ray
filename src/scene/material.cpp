@@ -49,6 +49,7 @@ glm::dvec3 Material::shade(Scene* scene, const ray& r, const isect& i) const
 
 	glm::dvec3 phong(0,0,0);
 	glm::dvec3 pointQ = (r.getPosition()) + glm::normalize(r.getDirection()) *i.getT();
+	pointQ += i.getN()*RAY_EPSILON;
 	phong += m.ke(i) + m.ka(i) * scene->ambient();
 	int a=0;
 	for ( const auto& pLight : scene->getAllLights() ) {
