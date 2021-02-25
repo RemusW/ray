@@ -113,7 +113,7 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
         //Reflected Color
 		reflectVector = glm::reflect(rDir,plNorm);
 		reflectVector = glm::normalize(reflectVector);
-	    ray refR(pointQ,reflectVector,glm::dvec3(1,1,1),ray::REFLECTION); // change ray type
+	    ray refR(pointQ+reflectVector*RAY_EPSILON,reflectVector,glm::dvec3(1,1,1),ray::REFLECTION); // change ray type
         colorRe = (m.kr(i) * traceRay(refR,thresh,depth-1,t));
 		
 		//Refracted/Transmitted Color
@@ -135,10 +135,10 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		// check for total internal reflection
 		double eta = n_i/n_t;
 		double TIR = 1 - eta*eta * (1 - dotP*dotP);
-		if (TIR>=0 && glm::length(m.kt(i)) > 0)
+		if (TIR>=0 && glm::length(m.kt(i))>=0)
 		{
 			refractVector = glm::refract(rDir,plNorm,eta);
-			ray rafR(pointQ,refractVector,glm::dvec3(1,1,1),ray::REFRACTION); //change ray 
+			ray rafR(pointQ+refractVector*RAY_EPSILON,refractVector,glm::dvec3(1,1,1),ray::REFRACTION); //change ray 
 			glm::dvec3 refractCol = traceRay(rafR,thresh,depth-1,t);
 			colorRf =  m.kt(i) * refractCol;
 			//cout << m.kt(i) << " " << refractCol << " " << colorRf << endl;

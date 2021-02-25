@@ -56,10 +56,6 @@ double PointLight::distanceAttenuation(const glm::dvec3& P) const
 	double d = glm::length(position - P);
 	double atten = 1 / (constantTerm + linearTerm*d + quadraticTerm*d*d);
 	atten = min(1.0, atten);
-	//cout.precision(17);
-	//if (atten != 1.0)
-	//cout << "atten data " << " " << getDirection(P) << " " << d << " " << atten << endl;
-	//cout << 1 << "/ (" << constantTerm << " + " << linearTerm << "*" << d << " + " << quadraticTerm << "*" << d*d << endl;
 	return atten;
 }
 

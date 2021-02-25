@@ -49,13 +49,11 @@ glm::dvec3 Material::shade(Scene* scene, const ray& r, const isect& i) const
 
 	glm::dvec3 phong(0,0,0);
 	glm::dvec3 pointQ = (r.getPosition()) + glm::normalize(r.getDirection()) *i.getT();
-	pointQ += i.getN()*RAY_EPSILON;
 	phong += m.ke(i) + m.ka(i) * scene->ambient();
-	int a=0;
 	for ( const auto& pLight : scene->getAllLights() ) {
 		// Calc attenuation
 		double distatten = pLight->distanceAttenuation(pointQ);
-		glm::dvec3 shadatten = pLight->shadowAttenuation(r, pointQ);
+		glm::dvec3 shadatten = pLight->shadowAttenuation(r, pointQ+pLight->getDirection(pointQ)*RAY_EPSILON);
 		glm::dvec3 atten = distatten * shadatten;
 		// Calc diffuse
 		glm::dvec3 diffuse = kd(i) * max(0.0, dot(i.getN(), pLight->getDirection(pointQ)));
@@ -64,8 +62,6 @@ glm::dvec3 Material::shade(Scene* scene, const ray& r, const isect& i) const
 		glm::dvec3 V = r.getDirection()*-1.0;
 		glm::dvec3 specular = ks(i) * pow(max(0.0, dot(R, V)), m.shininess(i));
 		phong += atten*(diffuse + specular) * pLight->getColor();
-
-		//cout << a++ << " " << phong << " "  << atten << " " << distatten << " " <<shadatten << endl;
 	}
 	return phong;
 }

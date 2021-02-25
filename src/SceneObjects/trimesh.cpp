@@ -102,30 +102,31 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
 	// check if we are hitting the triangle in that plane
 	const glm::dvec3 tfNorm = normal;
     i.setN(tfNorm);
-	i.setMaterial(this->getMaterial());
 	i.setObject(this);
+	i.setMaterial(this->getMaterial());
 
 	glm::dvec3 a_coords = parent->vertices[ids[0]];
 	glm::dvec3 b_coords = parent->vertices[ids[1]];
 	glm::dvec3 c_coords = parent->vertices[ids[2]];
-	//glm::dvec3 midPoint =  (a_coords + b_coords + c_coords) * (1.0/3.0);
+	glm::dvec3 midPoint =  (a_coords + b_coords + c_coords) * (1.0/3.0);
     
 	if (glm::dot(tfNorm,r.getDirection()) == 0.0) // Plane is perpendicular
 		return false;
 	//calculate t value
-	double tIntersect = -1.0 * (double) (glm::dot(tfNorm,r.getPosition()) - glm::dot(tfNorm,b_coords))
+	double tIntersect = -1.0 * (double) (glm::dot(tfNorm,r.getPosition()) - glm::dot(tfNorm,a_coords))
 	/glm::dot(tfNorm,r.getDirection());
-	if (tIntersect <= 0)
+	if (tIntersect < 0)
 		return false;
 	glm::dvec3 pointQ = r.getPosition() + (tIntersect * r.getDirection());
+	
 	// Do inside outside test to double-verify 
 	//(c-b) x (q-b) . n >=0
 	//(a-c) x (q-c) . n >=0
-	//bool insideOut = glm::dot(glm::cross(b_coords-a_coords,pointQ-a_coords),tfNorm) >= 0;
-	// insideOut = insideOut && (glm::dot(glm::cross(c_coords-b_coords,pointQ-b_coords),tfNorm) >= 0);
-	//insideOut = insideOut && (glm::dot(glm::cross(a_coords-c_coords,pointQ-c_coords),tfNorm) >= 0);
-	//if (!insideOut)
-	//return false;
+	 bool insideOut = glm::dot(glm::cross(b_coords-a_coords,pointQ-a_coords),tfNorm) >= 0;
+	 insideOut = insideOut && (glm::dot(glm::cross(c_coords-b_coords,pointQ-b_coords),tfNorm) >= 0);
+	 insideOut = insideOut && (glm::dot(glm::cross(a_coords-c_coords,pointQ-c_coords),tfNorm) >= 0);
+	 if (!insideOut)
+	 	return false;
 	
 	//area from Point a b c
 	glm::dvec3 area = glm::cross(b_coords-a_coords,c_coords-a_coords);
@@ -146,14 +147,12 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
 	double qGamma = xC/aArea; 
     
 	bool inTriangle = (qAlpha >=0.0 && qBeta>=0.0 && qGamma >= 0.0) 
-	&& (qAlpha+qBeta+qGamma >= 1-RAY_EPSILON && qAlpha+qBeta+qGamma <= 1+RAY_EPSILON);
+	&& (qAlpha+qBeta+qGamma >= 1-RAY_EPSILON && qAlpha+qBeta+qGamma <= 1+RAY_EPSILON  );
 	if (!inTriangle)
     	return false;
-    
     i.setT(tIntersect);
 	i.setUVCoordinates(glm::dvec2(qAlpha,qBeta));
-
-    if (parent->vertNorms && parent->materials.size()!=0)
+    if (parent->vertNorms)
 	{
 		glm::dvec3 a_norm = parent->normals[ids[0]];
 		glm::dvec3 b_norm = parent->normals[ids[1]];
@@ -162,6 +161,9 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
 		kd_Q = glm::normalize(kd_Q);
 		//use interpolated normal instead 
 		i.setN(kd_Q);
+    }
+	if (parent->materials.size()!=0)
+	{
 		Material* aMat = parent->materials[ids[0]];
 		Material* bMat = parent->materials[ids[1]];
 		Material* cMat = parent->materials[ids[2]];
@@ -169,7 +171,7 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
         mixedMat += (qBeta *  *bMat);
 		mixedMat += (qGamma *  *cMat);
 		i.setMaterial(mixedMat);
-    }
+	}
 	return true;
 }
 
