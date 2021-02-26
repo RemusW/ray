@@ -117,15 +117,6 @@ glm::dvec3 TextureMap::getMappedValue(const glm::dvec2& coord) const
 		bilerp = (y2-y)/(y2-y1) * fxy1 + (y-y1)/(y2-y1) * fxy2;
 	else
 		x1<=x2? bilerp = fxy1 : bilerp = fxy2;
-	//glm::dvec3 bilerp = 1.0/((x2-x1)*(y2-y1)) * (pixQ11*(x2-x)*(y2-y) + pixQ21*(x-x1)*(y2-y) + pixQ12*(x2-x)*(y-y1) + pixQ22*(x-x1)*(y-y1)); 
-	// if(y1==y2) {
-	// 	cout << coord[0] << " " << coord[1] << endl;
-	// 	cout << x1 << " " << x2 << " " << width << endl;
-	// 	cout << y1 << " " << y2 << " " << height << endl;
-	// 	cout << pixQ11 << " " << pixQ12 << endl;
-	// 	cout << pixQ21 << " " << pixQ22 << endl;
-	// 	cout << bilerp << endl;
-	// }
 	return bilerp;
 }
 

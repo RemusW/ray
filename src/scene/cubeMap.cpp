@@ -29,7 +29,6 @@ glm::dvec3 CubeMap::getColor(ray r) const
 	
 	dir = r.getDirection();
 	dir[greatest] = abs(dir[greatest]);
-	//cout << r.getDirection() << " " << greatest << endl;
 	glm::dvec2 coord(0,0);
 	if(greatest == 0){ // X-axis
 		coord = glm::dvec2(dir[1], dir[2]);
@@ -44,7 +43,6 @@ glm::dvec3 CubeMap::getColor(ray r) const
 		return r.getDirection()[greatest]>0 ? tMap[2]->getMappedValue(coord) : tMap[3]->getMappedValue(coord);
 	}
 	else if(greatest == 2) { // Z-axis
-		//coord = glm::dvec2(dir[0], dir[1]);
 		coord[0] = 0.5 * (dir[0] / dir[greatest] + 1);
 		coord[1] = 0.5 * (dir[1] / dir[greatest] + 1);
 		return r.getDirection()[greatest]>0 ? tMap[4]->getMappedValue(coord) : tMap[5]->getMappedValue(coord);
