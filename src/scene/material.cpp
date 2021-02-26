@@ -90,9 +90,43 @@ glm::dvec3 TextureMap::getMappedValue(const glm::dvec2& coord) const
 	// [0, 1] x [0, 1] in 2-space to bitmap coordinates,
 	// and use these to perform bilinear interpolation
 	// of the values.
-	glm::dvec3 pix = getPixelAt(coord[0]*width, coord[1]*height);
-	//cout << coord[0] << " " << coord[1] << " " << pix << endl;
-	return pix;
+	double x = coord[0]*width;
+	double y = coord[1]*height;
+	int x1 = coord[0]*width;
+	int x2 = coord[0]*width+1;
+	x2 = glm::clamp(x2,0,width-1);
+	int y1 = coord[1]*height;
+	int y2 = coord[1]*height+1;
+	y2 = glm::clamp(y2,0,height-1);
+	glm::dvec3 pixQ11 = getPixelAt(x, y);
+	glm::dvec3 pixQ12 = getPixelAt(x1, y2);
+	glm::dvec3 pixQ21 = getPixelAt(x2, y1);
+	glm::dvec3 pixQ22 = getPixelAt(x2, y2);
+	glm::dvec3 fxy1;
+	glm::dvec3 fxy2;
+	if (x1!=x2) {
+		fxy1 = (x2-x)/(x2-x1) * pixQ11 + (x-x1)/(x2-x1) * pixQ21;
+		fxy2 = (x2-x)/(x2-x1) * pixQ12 + (x-x1)/(x2-x1) * pixQ22;
+	}
+	else{
+		fxy1 = pixQ11;
+		fxy2 = pixQ12;
+	}
+	glm::dvec3 bilerp;
+	if (y1!=y2)
+		bilerp = (y2-y)/(y2-y1) * fxy1 + (y-y1)/(y2-y1) * fxy2;
+	else
+		x1<=x2? bilerp = fxy1 : bilerp = fxy2;
+	//glm::dvec3 bilerp = 1.0/((x2-x1)*(y2-y1)) * (pixQ11*(x2-x)*(y2-y) + pixQ21*(x-x1)*(y2-y) + pixQ12*(x2-x)*(y-y1) + pixQ22*(x-x1)*(y-y1)); 
+	// if(y1==y2) {
+	// 	cout << coord[0] << " " << coord[1] << endl;
+	// 	cout << x1 << " " << x2 << " " << width << endl;
+	// 	cout << y1 << " " << y2 << " " << height << endl;
+	// 	cout << pixQ11 << " " << pixQ12 << endl;
+	// 	cout << pixQ21 << " " << pixQ22 << endl;
+	// 	cout << bilerp << endl;
+	// }
+	return bilerp;
 }
 
 glm::dvec3 TextureMap::getPixelAt(int x, int y) const
