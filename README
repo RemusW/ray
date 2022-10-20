@@ -1,2 +1,10 @@
-Hello for this ray tracer 
-I and Remus worked on this together
+Hello for this Ray Tracer 
+Marlow and Remus worked on this together
+
+Not many additional steps were really taken to build the project. Project was developed on Ubuntu.
+Some things to note.
+1) In glm.cmake I had to force cmake_policy (SET CMP0072 NEW) to run the the latest version of fltk
+2) I was having troubles linking when doing "make -j8" so in build/src/CMakeFiles/ray.dir/link.txt I had to add some flags at the end of the txt. 
+All the flags together looked like
+    "-lX11 -lSM -lICE -lXrender -lXcursor -lXfixes -lXinerama -lXext -lm -ljpeg -ldl"
+This needed to be redone everytime I ran cmake.

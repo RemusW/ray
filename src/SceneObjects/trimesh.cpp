@@ -107,35 +107,39 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
 	glm::dvec3 a_coords = parent->vertices[ids[0]];
 	glm::dvec3 b_coords = parent->vertices[ids[1]];
 	glm::dvec3 c_coords = parent->vertices[ids[2]];
-	glm::dvec3 midPoint =  (a_coords + b_coords + c_coords) * (1.0/3.0);
-	if (glm::dot(tfNorm,r.getDirection()) == 0.0) // Plane is perpendicular
+    double normDotDir = glm::dot(tfNorm,r.getDirection());
+	if ( normDotDir == 0.0) // Plane is perpendicular
 		return false;
+		
 	//calculate t value
 	double tIntersect = -1.0 * (double) (glm::dot(tfNorm,r.getPosition()) - glm::dot(tfNorm,a_coords))
-	/glm::dot(tfNorm,r.getDirection());
+	/normDotDir;
 	if (tIntersect < 0)
 		return false;
 	glm::dvec3 pointQ = r.getPosition() + (tIntersect * r.getDirection());
 	// Do inside outside test to double-verify 
 	//(c-b) x (q-b) . n >=0
 	//(a-c) x (q-c) . n >=0
-	bool insideOut = glm::dot(glm::cross(b_coords-a_coords,pointQ-a_coords),tfNorm) >= 0;
-	insideOut = insideOut && (glm::dot(glm::cross(c_coords-b_coords,pointQ-b_coords),tfNorm) >= 0);
-	insideOut = insideOut && (glm::dot(glm::cross(a_coords-c_coords,pointQ-c_coords),tfNorm) >= 0);
-	if (!insideOut)
-		return false;
+	glm::dvec3 baqCross = glm::cross(b_coords-a_coords,pointQ-a_coords);
+	glm::dvec3 cbqCross = glm::cross(c_coords-b_coords,pointQ-b_coords);
+	glm::dvec3 acqCross = glm::cross(a_coords-c_coords,pointQ-c_coords);
+	// bool insideOut = glm::dot(baqCross,tfNorm) >= 0;
+	// insideOut = insideOut && (glm::dot(cbqCross,tfNorm) >= 0);
+	// insideOut = insideOut && (glm::dot(acqCross,tfNorm) >= 0);
+	// if (!insideOut)
+	// 	return false;
 	
 	//area from Point a b c
 	glm::dvec3 area = glm::cross(b_coords-a_coords,c_coords-a_coords);
     double aArea = (1.0/2.0) * glm::length(area);
 	// using Point B , C and Point Q get a subarea
-	glm::dvec3 aA = glm::cross(c_coords-b_coords,pointQ-b_coords);
+	glm::dvec3 aA = cbqCross;
     double xA = glm::length(aA) * (1.0/2.0);
 	// using Point A , C and Point Q get b subarea
-	glm::dvec3 aB = glm::cross(a_coords-c_coords,pointQ-c_coords);
+	glm::dvec3 aB = acqCross;
     double xB = glm::length(aB) * (1.0/2.0);
 	// using Point A , B and Point Q get c subarea 
-	glm::dvec3 aC = glm::cross(b_coords-a_coords,pointQ-a_coords);
+	glm::dvec3 aC = baqCross;
 	double xC = glm::length(aC) * (1.0/2.0);
      
 	//greek values

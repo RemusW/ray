@@ -282,9 +282,12 @@ void RayTracer::traceImage(int w, int h)
 	//
 	//       An asynchronous traceImage lets the GUI update your results
 	//       while rendering.
+	// PixelThreads.clear();
 	for (int i = 0 ;i<w ; i++) {
 		for (int j = 0; j<h; j++) {
 			setPixel(i,j, tracePixel(i,j));
+			//std::thread temp = std::thread(&RayTracer::setPixel, this, i , j , tracePixel(i,j));
+			//PixelThreads.push_back(temp);
 		}
 	}
 }
@@ -298,7 +301,8 @@ int RayTracer::aaImage()
 	//      RayTracer::traceSetup() function
 	return 0;
 }
-
+/* void RayTracer::traceImageHelper()
+*/  
 bool RayTracer::checkRender()
 {
 	// YOUR CODE HERE

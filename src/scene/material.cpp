@@ -48,7 +48,7 @@ glm::dvec3 Material::shade(Scene* scene, const ray& r, const isect& i) const
 	const Material& m = i.getMaterial();
 
 	glm::dvec3 phong(0,0,0);
-	glm::dvec3 pointQ = (r.getPosition()) + glm::normalize(r.getDirection()) *i.getT();
+	glm::dvec3 pointQ = r.at(i.getT());
 	phong += m.ke(i) + m.ka(i) * scene->ambient();
 	for ( const auto& pLight : scene->getAllLights() ) {
 		// Calc attenuation
@@ -62,6 +62,9 @@ glm::dvec3 Material::shade(Scene* scene, const ray& r, const isect& i) const
 		glm::dvec3 V = r.getDirection()*-1.0;
 		glm::dvec3 specular = ks(i) * pow(max(0.0, dot(R, V)), m.shininess(i));
 		phong += atten*(diffuse + specular) * pLight->getColor();
+	  /*phong[0] *= exp(-1* m.kt(i)[0] * i.getT());
+		phong[1] *= exp(-1* m.kt(i)[1] * i.getT());
+		phong[2] *= exp(-1* m.kt(i)[2] * i.getT());*/
 	}
 	return phong;
 }
@@ -104,6 +107,7 @@ glm::dvec3 TextureMap::getMappedValue(const glm::dvec2& coord) const
 	glm::dvec3 pixQ22 = getPixelAt(x2, y2);
 	glm::dvec3 fxy1;
 	glm::dvec3 fxy2;
+	// Interpolate the x values
 	if (x1!=x2) {
 		fxy1 = (x2-x)/(x2-x1) * pixQ11 + (x-x1)/(x2-x1) * pixQ21;
 		fxy2 = (x2-x)/(x2-x1) * pixQ12 + (x-x1)/(x2-x1) * pixQ22;
@@ -112,6 +116,7 @@ glm::dvec3 TextureMap::getMappedValue(const glm::dvec2& coord) const
 		fxy1 = pixQ11;
 		fxy2 = pixQ12;
 	}
+	// Interpolate the y values
 	glm::dvec3 bilerp;
 	if (y1!=y2)
 		bilerp = (y2-y)/(y2-y1) * fxy1 + (y-y1)/(y2-y1) * fxy2;

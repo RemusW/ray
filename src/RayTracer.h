@@ -69,7 +69,8 @@ private:
 	std::unique_ptr<Scene> scene;
 
 	bool m_bBufferReady;
-
+    //std::thread PixelThreads[threads];
+	//std::thread PixelThreadsStatus[threads];
 };
 
 #endif // __RAYTRACER_H__

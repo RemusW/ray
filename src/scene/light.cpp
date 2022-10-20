@@ -49,10 +49,6 @@ double PointLight::distanceAttenuation(const glm::dvec3& P) const
 	// You'll need to modify this method to attenuate the intensity 
 	// of the light based on the distance between the source and the 
 	// point P.  For now, we assume no attenuation and just return 1.0
-	// isect i;
-	// glm::dvec3 cam = scene->getCamera().getEye();
-	// ray r(cam, glm::normalize(cam-P), glm::dvec3(1,1,1),ray::VISIBILITY);
-	// bool hit = scene->intersect(r, i);
 	double d = glm::length(position - P);
 	double atten = 1 / (constantTerm + linearTerm*d + quadraticTerm*d*d);
 	atten = min(1.0, atten);
